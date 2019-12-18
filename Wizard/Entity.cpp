@@ -1,3 +1,3 @@
 #include "Entity.h"
 
-unsigned int Entity::statID{ 0 };
+unsigned long Entity::statID{ 1 };

@@ -1,6 +1,6 @@
 #include "Game.h"
 
-
+#include "RNG.h"
 
 
 #include "WLib.h"
@@ -10,16 +10,26 @@
 #include <bitset>
 #include <cmath>
 
-
+RNG rng;
 
 void Game::init()
 {
+
+	entities.resize(100);
+	
+	for (auto & entity : entities)
+	{
+		entity.color = sf::Color::Blue;
+		entity.position = player.position + sf::Vector2f{rng.rand<float>(-100, 100), rng.rand<float>(-100, 100) };
+		entity.velocity = sf::Vector2f{ rng.rand<float>(-0.5f, 0.5f), rng.rand<float>(-0.5f, 0.5f) };
+		entity.makeEntity();
+	}
 	
 	player.position = { 0.f, 0.f };
-	player.speed = { 100 };
+	player.speed = { 25 };
 	player.color = sf::Color::Green;
 
-	shape.setRadius(33.f);
+	shape.setRadius(3.f);
 
 	shape.setFillColor(sf::Color::Green);
 	shape.setOrigin({ shape.getLocalBounds().width / 2, shape.getLocalBounds().height / 2 });
@@ -31,6 +41,7 @@ void Game::gameLoop()
 	while (systemWindow.window.isOpen())
 	{
 		update();
+		render();
 	}
 }
 
@@ -45,24 +56,27 @@ void Game::update()
 
 	//////////////////// Controls
 	////////// Keyboard controls
+	// fire projectile
 	if (systemWindow.keysPressed[sf::Keyboard::Num1])
 	{
+		entities.emplace_back();
+
+		//
 		projectiles.emplace_back();
 		projectiles.back().position = player.position;
 		projectiles.back().speed = 0.1f;
-		//
 		projectiles.back().velocity = { -(normalizedPlayerMouseDifferenceVector * projectiles.back().speed) };
-		//
 
 		projectiles.back().color = sf::Color::Red;
 	}
 
 	if (systemWindow.keysPressed[sf::Keyboard::Num2])
 	{
-		projectiles.emplace_back();
-		projectiles.back().position = player.position;
-		projectiles.back().velocity = { 0.1f, 0.1f };
-		projectiles.back().color = sf::Color::Magenta;
+		for (auto& entity : entities)
+		{
+			entity.position = player.position + sf::Vector2f{ rng.rand<float>(-100, 100), rng.rand<float>(-100, 100) };
+			entity.velocity = sf::Vector2f{ rng.rand<float>(-0.5f, 0.5f), rng.rand<float>(-0.5f, 0.5f) };
+		}
 	}
 
 	if (systemWindow.keysHeld[sf::Keyboard::Escape])
@@ -79,7 +93,6 @@ void Game::update()
 		player.position -= normalize(playerMouseDifferenceVector) * (player.speed / 1000);
 	}
 
-	////////// Mouse controls
 	if (systemWindow.mouseHeld[1])
 	{
 
@@ -95,8 +108,19 @@ void Game::update()
 		proj.update();
 	}
 
-	//////////////////////////////////////// RENDERING
-	// clear
+	for (auto& entity : entities)
+	{
+		if (entity.ID)
+		{
+			entity.update();
+		}
+	}
+
+	
+}
+
+void Game::render()
+{
 	systemWindow.window.clear();
 
 	// render player
@@ -112,6 +136,16 @@ void Game::update()
 		systemWindow.window.draw(shape);
 	}
 
-	// display
+	// render entities
+	for (auto& entity : entities)
+	{
+		if (entity.ID)
+		{
+			shape.setPosition(world_to_window(entity.position, systemWindow.window));
+			shape.setFillColor(entity.color);
+			systemWindow.window.draw(shape);
+		}
+	}
+
 	systemWindow.window.display();
 }

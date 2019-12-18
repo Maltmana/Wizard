@@ -2,22 +2,31 @@
 #include "SFML/system.hpp"
 #include "SFML/Graphics.hpp"
 
+#include <limits>
+
+#define NULLENTITY 0
+
 class Entity
 {
 public:
-	Entity()
-		: ID{statID}
+	void makeEntity()
 	{
+		ID = statID;
 		statID++;
+	}
+
+	void nullify()
+	{
+		ID = NULLENTITY;
 	}
 
 	void update()
 	{
-		position += velocity;
+			position += velocity;
 	}
 
 	// fundamental
-	unsigned int ID;
+	unsigned long long ID{ NULLENTITY };
 	sf::Vector2f position{ 0.f,0.f };
 	sf::Vector2f velocity{ 0.f, 0.f };
 
@@ -28,6 +37,6 @@ public:
 	sf::Color color{ sf::Color::Magenta };
 
 private:
-	static unsigned int statID;
+	static unsigned long statID;
 };
 
